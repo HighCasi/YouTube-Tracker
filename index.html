@@ -3,35 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube Channel Tracker (No API Key)</title>
-    <!-- Tailwind CSS -->
+    <title>YouTube Channel Tracker</title>
+    
+    <!-- Tailwind CSS laden -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Tailwind Konfiguration für ein modernes "GitHub Dark"-inspiriertes Design -->
     <script>
         tailwind.config = {
-            darkMode: 'media', // Nutzt das System-Theme (Hell/Dunkel)
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
                     },
                     colors: {
-                        yt: '#FF0000',
+                        darkBase: '#0d1117',   /* Dunkler Hintergrund */
+                        darkCard: '#161b22',   /* Karten-Hintergrund */
+                        darkBorder: '#30363d', /* Subtile Ränder */
+                        darkHover: '#1f242c',  /* Hover-Effekte */
+                        ytRed: '#FF0000',
+                        accentBlue: '#58a6ff'  /* Klickbare Links */
                     }
                 }
             }
         }
     </script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Inter Font für saubere Typografie -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        
-        /* Loading spinner */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0d1117;
+            color: #c9d1d9;
+        }
+
+        /* Lade-Animation (Spinner) */
         .spinner {
-            border: 3px solid rgba(156, 163, 175, 0.3);
+            border: 3px solid rgba(139, 148, 158, 0.2);
             border-radius: 50%;
-            border-top: 3px solid #FF0000;
-            width: 24px;
-            height: 24px;
+            border-top: 3px solid #58a6ff;
+            width: 28px;
+            height: 28px;
             animation: spin 1s linear infinite;
         }
         @keyframes spin {
@@ -39,288 +53,207 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Kleine Spinner für Buttons */
-        .spinner-sm {
-            width: 16px;
-            height: 16px;
-            border-width: 2px;
+        /* Eigener Dropdown-Pfeil (da wir appearance-none nutzen) */
+        .custom-select-wrapper::after {
+            content: "▼";
+            font-size: 0.8rem;
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            color: #8b949e;
         }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100 min-h-screen flex flex-col transition-colors duration-300">
+<body class="min-h-screen p-4 sm:p-8 flex flex-col items-center">
 
-    <!-- Header -->
-    <header class="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-800 sticky top-0 z-10">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <svg viewBox="0 0 24 24" fill="currentColor" class="w-8 h-8 text-yt">
-                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                </svg>
-                <h1 class="text-xl font-bold tracking-tight">Kanal Tracker <span class="text-sm font-normal text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full ml-2">RSS</span></h1>
-            </div>
-        </div>
-    </header>
-
-    <!-- Main Content -->
-    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+    <!-- Hauptcontainer -->
+    <main class="w-full max-w-2xl mt-8">
         
-        <!-- Add Channel Section -->
-        <section class="mb-10 bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800">
-            <h2 class="text-lg font-semibold mb-2 flex items-center gap-2">Kanal hinzufügen</h2>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                Da wir RSS nutzen, benötigst du die exakte Kanal-ID. Diese beginnt immer mit <strong>UC</strong> (z.B. <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">UC_x5XG1OV2P6uZZ5FSM9Ttw</code>).
-            </p>
-            <div class="flex flex-col sm:flex-row gap-3">
-                <input type="text" id="channelInput" placeholder="Kanal-ID (z.B. UC123...)" 
-                    class="flex-grow bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-yt/50 transition-all font-mono text-sm">
-                <button id="addChannelBtn" class="bg-yt hover:bg-red-700 text-white font-medium px-6 py-3 rounded-xl shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 min-w-[140px]">
-                    <span id="addBtnText">Hinzufügen</span>
-                    <div id="addSpinner" class="spinner spinner-sm hidden"></div>
-                </button>
-            </div>
-            <p id="formMessage" class="text-sm mt-3 hidden"></p>
-        </section>
+        <!-- Header -->
+        <div class="mb-8 flex items-center gap-3">
+            <svg viewBox="0 0 24 24" fill="currentColor" class="w-8 h-8 text-ytRed">
+                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+            </svg>
+            <h1 class="text-2xl font-semibold text-white">YouTube RSS Tracker</h1>
+        </div>
 
-        <!-- Channels Grid -->
-        <section>
-            <div class="flex justify-between items-end mb-6">
-                <h2 class="text-xl font-bold">Tracked Channels</h2>
-                <span id="channelCount" class="text-sm text-gray-500 dark:text-gray-400">0 Kanäle</span>
+        <!-- UI Box -->
+        <div class="bg-darkCard border border-darkBorder rounded-xl shadow-lg p-6">
+            
+            <label for="channelSelect" class="block text-sm font-medium text-gray-400 mb-2">
+                Kanal auswählen
+            </label>
+            
+            <div class="relative custom-select-wrapper mb-6">
+                <!-- Dropdown Menü -->
+                <select id="channelSelect" class="w-full bg-darkBase border border-darkBorder text-white rounded-lg px-4 py-3 focus:outline-none focus:border-accentBlue focus:ring-1 focus:ring-accentBlue appearance-none transition-colors cursor-pointer">
+                    <option value="" disabled selected>Bitte wählen...</option>
+                    <!-- Optionen werden per JavaScript generiert -->
+                </select>
+            </div>
+
+            <!-- Hier werden die Videos (oder Lade-Status) reingeladen -->
+            <div id="resultsContainer">
+                <div class="text-center py-10 text-gray-500 text-sm">
+                    Wähle oben einen Kanal aus, um die letzten 5 Videos zu sehen.
+                </div>
             </div>
             
-            <div id="channelsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Channel Cards -->
-            </div>
-            
-            <!-- Empty State -->
-            <div id="emptyState" class="hidden flex flex-col items-center justify-center py-20 text-center">
-                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-gray-300 dark:text-gray-600 mb-4"><path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17"/><path d="m10 15 5-3-5-3z"/></svg>
-                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-1">Noch keine Kanäle hinzugefügt</h3>
-                <p class="text-gray-500 dark:text-gray-400 max-w-sm">Gib oben eine Kanal-ID ein, um die aktuellsten Videos über RSS zu tracken.</p>
-            </div>
-        </section>
-
+        </div>
     </main>
 
-    <footer class="mt-auto py-6 text-center text-sm text-gray-400 dark:text-gray-600 border-t border-gray-200 dark:border-gray-800">
-        <p>Daten werden via rss2json-Proxy geladen und lokal gespeichert. Kein API-Key notwendig.</p>
+    <!-- Footer -->
+    <footer class="mt-auto pt-10 pb-4 text-xs text-gray-600">
+        Kein API-Key benötigt. Datenabruf via RSS-Feed.
     </footer>
 
-    <!-- Application Logic -->
+    <!-- App Logic -->
     <script>
-        // State
-        let trackedChannels = JSON.parse(localStorage.getItem('ytTrackerRssChannels')) || [];
+        /**
+         * 1. MAPPING OBJEKT (LEICHT ANPASSBAR)
+         * Hier kannst du Kanäle hinzufügen, entfernen oder ändern.
+         * Format: 'Name für das Dropdown': 'UC... Kanal-ID'
+         */
+        const channelMapping = {
+            'FritzMeineckeLive': 'UCGRb1WmL-v6AxZRLbcdXD_Q',
+            'NerdsHeaven-de': 'UCd9d592s_9e8-T3a_r16Q-g', /* Trage hier die exakte UC-ID ein falls abweichend */
+            'CliffBeatsClassics': 'UC33zItnIZRRtnWT8Mj9-byQ',
+            'LeFloidLive': 'UCLm6s42r_wCbBX0QqXNCTwg'
+        };
 
-        // DOM Elements
-        const inputField = document.getElementById('channelInput');
-        const addBtn = document.getElementById('addChannelBtn');
-        const addBtnText = document.getElementById('addBtnText');
-        const addSpinner = document.getElementById('addSpinner');
-        const formMessage = document.getElementById('formMessage');
-        const channelsGrid = document.getElementById('channelsGrid');
-        const emptyState = document.getElementById('emptyState');
-        const channelCount = document.getElementById('channelCount');
+        // DOM Elemente referenzieren
+        const selectEl = document.getElementById('channelSelect');
+        const resultsContainer = document.getElementById('resultsContainer');
 
         /**
-         * Initialisierung
+         * 2. INITIALISIERUNG
+         * Dropdown-Menü automatisch anhand des mapping-Objekts füllen.
          */
-        function init() {
-            addBtn.addEventListener('click', handleAddChannel);
-            inputField.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') handleAddChannel();
+        function initDropdown() {
+            Object.keys(channelMapping).forEach(channelName => {
+                const option = document.createElement('option');
+                option.value = channelName;
+                option.textContent = channelName;
+                selectEl.appendChild(option);
             });
-            renderGrid();
         }
 
         /**
-         * Kanal hinzufügen
+         * 3. EVENT LISTENER
+         * Reagiert auf die Auswahl im Dropdown.
          */
-        async function handleAddChannel() {
-            const channelId = inputField.value.trim();
+        selectEl.addEventListener('change', async (event) => {
+            const selectedName = event.target.value;
+            const channelId = channelMapping[selectedName];
 
-            if (!channelId) {
-                showMessage('Bitte gib eine Kanal-ID ein.', 'text-red-500');
-                return;
-            }
+            if (!channelId) return;
 
-            if (!channelId.startsWith('UC')) {
-                showMessage('Die Kanal-ID muss mit "UC" beginnen.', 'text-red-500');
-                return;
-            }
-
-            if (trackedChannels.includes(channelId)) {
-                showMessage('Dieser Kanal wird bereits getrackt.', 'text-blue-500');
-                return;
-            }
-
-            // UI on Loading
-            setLoading(true);
+            // Lade-Animation anzeigen
+            resultsContainer.innerHTML = `
+                <div class="flex justify-center py-10">
+                    <div class="spinner"></div>
+                </div>
+            `;
 
             try {
-                // Wir testen den RSS-Feed einmal, um sicherzustellen, dass die ID gültig ist
-                const data = await fetchRssData(channelId);
+                // RSS-Feed über Proxy abrufen (Umgehung von CORS & API-Key-Zwang)
+                const rssUrl = encodeURIComponent(`https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`);
+                const proxyUrl = `https://api.rss2json.com/v1/api.json?rss_url=${rssUrl}`;
                 
+                const response = await fetch(proxyUrl);
+                
+                if (!response.ok) {
+                    throw new Error('Netzwerk-Fehler beim Abrufen der Daten.');
+                }
+                
+                const data = await response.json();
+
+                // Status prüfen
                 if (data.status === 'ok') {
-                    // Gültig! Speichern und rendern.
-                    trackedChannels.push(channelId);
-                    saveChannels();
-                    inputField.value = '';
-                    showMessage(`Erfolgreich hinzugefügt: ${data.feed.title}`, 'text-green-600 dark:text-green-400');
-                    renderGrid();
+                    renderVideos(data.items);
                 } else {
-                    showMessage('Kanal nicht gefunden. Ist die ID korrekt?', 'text-red-500');
+                    showError('Kanal konnte nicht geladen werden. Ist die UC-ID korrekt?');
                 }
             } catch (error) {
-                showMessage('Fehler beim Überprüfen des Kanals. Versuche es später erneut.', 'text-red-500');
-            } finally {
-                setLoading(false);
+                console.error(error);
+                showError('Es gab ein Problem bei der Verbindung zum Server.');
             }
-        }
+        });
 
         /**
-         * Kanal entfernen
+         * 4. RENDER FUNKTION
+         * Baut das HTML für die exakt 5 neuesten Videos zusammen.
          */
-        function removeChannel(channelId) {
-            trackedChannels = trackedChannels.filter(id => id !== channelId);
-            saveChannels();
-            renderGrid();
-        }
+        function renderVideos(items) {
+            // Nur die letzten 5 Videos extrahieren
+            const latestVideos = items.slice(0, 5);
 
-        /**
-         * LocalStorage speichern
-         */
-        function saveChannels() {
-            localStorage.setItem('ytTrackerRssChannels', JSON.stringify(trackedChannels));
-        }
-
-        /**
-         * Daten per RSS-Proxy abrufen
-         */
-        async function fetchRssData(channelId) {
-            const rssUrl = encodeURIComponent(`https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`);
-            const proxyUrl = `https://api.rss2json.com/v1/api.json?rss_url=${rssUrl}`;
-            
-            const response = await fetch(proxyUrl);
-            if (!response.ok) throw new Error('Netzwerk-Fehler');
-            return await response.json();
-        }
-
-        /**
-         * Haupt-Render-Funktion für das Grid
-         */
-        async function renderGrid() {
-            channelCount.textContent = `${trackedChannels.length} Kanal${trackedChannels.length !== 1 ? 'e' : ''}`;
-
-            if (trackedChannels.length === 0) {
-                channelsGrid.innerHTML = '';
-                emptyState.classList.remove('hidden');
+            if (latestVideos.length === 0) {
+                resultsContainer.innerHTML = '<p class="text-center py-6 text-gray-500 text-sm">Keine Videos gefunden.</p>';
                 return;
             }
 
-            emptyState.classList.add('hidden');
-            channelsGrid.innerHTML = '';
+            // HTML Container für die Liste starten
+            let html = '<div class="space-y-3 mt-2">';
 
-            // 1. Platzhalter/Skeletons für alle Kanäle erstellen
-            trackedChannels.forEach(channelId => {
-                const card = document.createElement('div');
-                card.id = `card-${channelId}`;
-                card.className = "bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl flex flex-col shadow-sm overflow-hidden relative";
+            latestVideos.forEach(video => {
+                // Titel escapen, um XSS zu verhindern
+                const title = escapeHtml(video.title);
                 
-                card.innerHTML = `
-                    <div class="p-5 border-b border-gray-100 dark:border-gray-800 flex justify-between items-start bg-gray-50/50 dark:bg-gray-800/20 min-h-[72px]">
-                        <h3 class="font-bold text-lg text-gray-900 dark:text-gray-100 line-clamp-1 pr-8 channel-title">Lade Kanal...</h3>
-                        <button onclick="removeChannel('${channelId}')" class="text-gray-400 hover:text-red-500 transition-colors absolute top-4 right-4 p-1 rounded-md hover:bg-red-50 dark:hover:bg-red-500/10" title="Entfernen">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-                        </button>
-                    </div>
-                    <div class="p-5 flex-grow videos-container">
-                        <div class="flex justify-center py-6"><div class="spinner"></div></div>
-                    </div>
+                // Datum schön formatieren
+                const dateString = formatDate(video.pubDate);
+
+                // Ein einzelner Video-Eintrag (Kein Thumbnail, nur Text!)
+                html += `
+                    <a href="${video.link}" target="_blank" rel="noopener noreferrer" 
+                       class="block p-4 rounded-lg bg-darkBase border border-darkBorder hover:border-accentBlue hover:bg-darkHover transition-all group">
+                        <h3 class="font-medium text-gray-200 group-hover:text-accentBlue line-clamp-2 leading-snug">
+                            ${title}
+                        </h3>
+                        <div class="flex items-center gap-1.5 mt-2 text-xs text-gray-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                            <span>${dateString} Uhr</span>
+                        </div>
+                    </a>
                 `;
-                channelsGrid.appendChild(card);
             });
 
-            // 2. Daten für alle Kanäle abrufen und befüllen
-            for (const channelId of trackedChannels) {
-                const card = document.getElementById(`card-${channelId}`);
-                const titleEl = card.querySelector('.channel-title');
-                const videosContainer = card.querySelector('.videos-container');
-
-                try {
-                    const data = await fetchRssData(channelId);
-
-                    if (data.status === 'ok') {
-                        // Kanalname updaten
-                        titleEl.textContent = data.feed.title;
-                        titleEl.title = data.feed.title; // Tooltip für lange Namen
-
-                        // Neueste 3 Videos extrahieren
-                        const latestVideos = data.items.slice(0, 3);
-                        
-                        if (latestVideos.length > 0) {
-                            videosContainer.innerHTML = latestVideos.map(video => {
-                                const title = escapeHtml(video.title);
-                                const date = formatDate(video.pubDate);
-                                const link = video.link;
-                                
-                                return `
-                                    <div class="mb-4 last:mb-0 border-l-2 border-yt pl-3 py-1 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors -ml-3 rounded-r-lg group">
-                                        <a href="${link}" target="_blank" rel="noopener noreferrer" class="block">
-                                            <p class="text-sm font-medium text-gray-800 dark:text-gray-200 line-clamp-2 leading-snug mb-1 group-hover:text-yt transition-colors">
-                                                ${title}
-                                            </p>
-                                            <div class="text-xs text-gray-500 dark:text-gray-400">
-                                                ${date}
-                                            </div>
-                                        </a>
-                                    </div>
-                                `;
-                            }).join('');
-                        } else {
-                            videosContainer.innerHTML = `<p class="text-sm text-gray-500 text-center py-4">Keine Videos im RSS Feed gefunden.</p>`;
-                        }
-                    } else {
-                        titleEl.textContent = "Fehlerhafter Kanal";
-                        videosContainer.innerHTML = `<p class="text-sm text-red-500 bg-red-50 dark:bg-red-900/20 p-3 rounded-lg text-center">Feed konnte nicht geladen werden.</p>`;
-                    }
-                } catch (error) {
-                    titleEl.textContent = "Verbindungsfehler";
-                    videosContainer.innerHTML = `<p class="text-sm text-red-500 bg-red-50 dark:bg-red-900/20 p-3 rounded-lg text-center">Netzwerkfehler.</p>`;
-                }
-            }
+            html += '</div>';
+            
+            // HTML in den Container injizieren
+            resultsContainer.innerHTML = html;
         }
 
         /**
-         * Helfer-Funktionen
+         * 5. HILFSFUNKTIONEN
          */
-        function setLoading(isLoading) {
-            addBtn.disabled = isLoading;
-            if (isLoading) {
-                addBtnText.classList.add('hidden');
-                addSpinner.classList.remove('hidden');
-                formMessage.classList.add('hidden');
-            } else {
-                addBtnText.classList.remove('hidden');
-                addSpinner.classList.add('hidden');
-            }
+        
+        // Fehlermeldung anzeigen
+        function showError(msg) {
+            resultsContainer.innerHTML = `
+                <div class="bg-red-500/10 border border-red-500/50 text-red-400 p-4 rounded-lg text-sm text-center">
+                    ${msg}
+                </div>
+            `;
         }
 
-        function showMessage(msg, colorClasses) {
-            formMessage.textContent = msg;
-            formMessage.className = `text-sm mt-3 ${colorClasses}`;
-            formMessage.classList.remove('hidden');
-            setTimeout(() => formMessage.classList.add('hidden'), 5000);
-        }
-
+        // Datum in deutsches Format umwandeln
         function formatDate(dateString) {
-            if (!dateString) return '';
-            const date = new Date(dateString.replace(' ', 'T')); // Kompatibilität für Safari/iOS bei manchen RSS feeds
+            if (!dateString) return 'Unbekanntes Datum';
+            // .replace sorgt für iOS/Safari Kompatibilität bei RSS-Zeitstempeln
+            const date = new Date(dateString.replace(' ', 'T')); 
             return date.toLocaleDateString('de-DE', {
-                day: '2-digit', month: '2-digit', year: 'numeric',
-                hour: '2-digit', minute: '2-digit'
-            }) + ' Uhr';
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
         }
 
+        // HTML Escape Funktion (Sicherheit gegen unsichere Video-Titel)
         function escapeHtml(unsafe) {
             return (unsafe || '').toString()
                  .replace(/&/g, "&amp;")
@@ -330,8 +263,9 @@
                  .replace(/'/g, "&#039;");
         }
 
-        // Start App
-        document.addEventListener('DOMContentLoaded', init);
+        // App starten
+        document.addEventListener('DOMContentLoaded', initDropdown);
+
     </script>
 </body>
 </html>
